@@ -15,7 +15,6 @@ import { ACTIVITY_TOTAL } from '@/utils/const';
 import { totalStat } from '@assets/index';
 import { loadSvgComponent } from '@/utils/svgUtils';
 import { SHOW_ELEVATION_GAIN, HOME_PAGE_TITLE } from '@/utils/const';
-import RoutePreview from '@/components/RoutePreview';
 import { Activity } from '@/utils/utils';
 
 const MonthOfLifeSvg = (sportType: string) => {
@@ -23,11 +22,7 @@ const MonthOfLifeSvg = (sportType: string) => {
   return lazy(() => loadSvgComponent(totalStat, path));
 };
 
-const RunningSvg = MonthOfLifeSvg('running');
-const WalkingSvg = MonthOfLifeSvg('walking');
-const HikingSvg = MonthOfLifeSvg('hiking');
-const CyclingSvg = MonthOfLifeSvg('cycling');
-const SwimmingSvg = MonthOfLifeSvg('swimming');
+const PushupSvg = MonthOfLifeSvg('pushup');
 const SkiingSvg = MonthOfLifeSvg('skiing');
 const AllSvg = MonthOfLifeSvg('all');
 
@@ -233,11 +228,19 @@ const ActivityCard: React.FC<ActivityCardProps> = ({
           </div>
         </div>
 
-        {/* Back side - Route preview */}
+        {/* Back side - Pushup details (no route for pushups) */}
         {interval === 'day' && activities.length > 0 && (
           <div className={styles.cardBack}>
             <div className={styles.routeContainer}>
-              <RoutePreview activities={activities} />
+              <div className="p-4">
+                <h3 className="text-lg font-semibold mb-2">Pushup Details</h3>
+                <p className="text-sm text-gray-600">
+                  Total pushups: {activities.reduce((sum, a) => sum + a.distance, 0).toFixed(0)}
+                </p>
+                <p className="text-sm text-gray-600">
+                  Activities: {activities.length}
+                </p>
+              </div>
             </div>
           </div>
         )}

@@ -102,6 +102,32 @@ export const colorFromType = (type: string): string => {
   }
 };
 
+// For running geo
+export const getBoundsForGeoData = (
+  geoData: GeoJSON.FeatureCollection<GeoJSON.LineString>
+): [[number, number], [number, number]] => {
+  const { features } = geoData;
+  let minLat = 90;
+  let maxLat = -90;
+  let minLng = 180;
+  let maxLng = -180;
+
+  for (const feature of features) {
+    const { coordinates } = feature.geometry;
+    for (const [lng, lat] of coordinates) {
+      minLat = Math.min(minLat, lat);
+      maxLat = Math.max(maxLat, lat);
+      minLng = Math.min(minLng, lng);
+      maxLng = Math.max(maxLng, lng);
+    }
+  }
+
+  return [
+    [minLng, minLat],
+    [maxLng, maxLat],
+  ];
+};
+
 export const scrollToMap = (): void => {
   const el = document.querySelector('.run_map');
   if (el) {
@@ -115,10 +141,52 @@ export const sortDateFunc = (a: Activity, b: Activity): number =>
 export const sortDateFuncReverse = (a: Activity, b: Activity): number =>
   new Date(a.start_date_local).getTime() - new Date(b.start_date_local).getTime();
 
+// const
 export const sortDistanceFunc = (a: Activity, b: Activity): number => b.distance - a.distance;
 
 export const filterYearRuns = (run: Activity, year: string): boolean =>
   run.start_date_local.slice(0, 4) === year;
+
+export const filterAndSortRuns = (
+  activities: Activity[],
+  filterFunc: (_run: Activity, _value: string) => boolean,
+  filterValue: string,
+  sortFunc: (_runs: Activity[]) => Activity[],
+  geoValue?: string
+) => {
+  let filteredActivities: Activity[] = activities;
+  if (filterFunc) {
+    filteredActivities = activities.filter((run) => filterFunc(run, filterValue));
+  }
+  if (geoValue) {
+    filteredActivities = filteredActivities.filter((run) => filterCityRuns(run, geoValue));
+  }
+  if (sortFunc) {
+    filteredActivities = sortFunc(filteredActivities);
+  }
+
+  // For pushup activities, calculate totals
+  const sumDistance = filteredActivities.reduce((sum, run) => sum + run.distance, 0);
+  const sumMovingTime = filteredActivities.reduce(
+    (sum, run) => sum + convertMovingTime2Sec(run.moving_time || '0'),
+    0
+  );
+  const avgHeartRate = filteredActivities.length
+    ? filteredActivities.reduce((sum, run) => sum + (run.average_heartrate || 0), 0) /
+      filteredActivities.length
+    : 0;
+
+  // Calculate streak (simplified for pushups)
+  const streak = filteredActivities.length;
+
+  return {
+    filterActivities: filteredActivities,
+    sumDistance,
+    sumMovingTime,
+    streak,
+    heartRate: avgHeartRate,
+  };
+};
 
 export const filterCityRuns = (run: Activity, city: string): boolean => {
   if (run.location_country) {
@@ -158,29 +226,36 @@ export const minutesAndSecondsFormat = (seconds: number): string => {
   return `${minutes}:${second.toFixed(0).toString().padStart(2, '0')}`;
 };
 
-export const formatRunTime = (moving_time: string): string => {
-  if (!moving_time) return '0:00';
-  
-  // If it's already in HH:MM:SS format, just return it
-  if (moving_time.includes(':')) {
-    return moving_time;
-  }
-  
-  // Otherwise, assume it's seconds and convert
-  const seconds = parseInt(moving_time);
-  return minutesAndSecondsFormat(seconds);
+// Add overloaded signatures for the function
+export function filterAndSortRuns(
+  activities: Activity[],
+  filterFunc: (_run: Activity, _value: string) => boolean,
+  filterValue: string,
+  sortFunc?: (_runs: Activity[]) => Activity[],
+  geoValue?: string
+): {
+  filterActivities: Activity[];
+  sumDistance: number;
+  sumMovingTime: number;
+  streak: number;
+  heartRate: number;
 };
 
-export const titleForRun = (run: Activity): string => {
-  if (run.name) {
-    return run.name;
-  }
-  // For pushups, show the count
-  return `${Math.round(run.distance)} pushups`;
+export function filterAndSortRuns(
+  activities: Activity[],
+  filterFunc: (_run: Activity, _value: string) => boolean,
+  filterValue: string,
+  title?: string
+): {
+  filterActivities: Activity[];
+  sumDistance: number;
+  sumMovingTime: number;
+  streak: number;
+  heartRate: number;
 };
 
-// Simplified filterAndSortRuns function for pushup data
-export const filterAndSortRuns = (
+// Implementation
+export function filterAndSortRuns(
   activities: Activity[],
   filterFunc: (_run: Activity, _value: string) => boolean,
   filterValue: string,
@@ -192,7 +267,7 @@ export const filterAndSortRuns = (
   sumMovingTime: number;
   streak: number;
   heartRate: number;
-} => {
+} {
   let filteredActivities: Activity[] = activities;
   
   if (filterFunc) {
@@ -237,36 +312,10 @@ export const filterAndSortRuns = (
     streak,
     heartRate: avgHeartRate,
   };
-};
+}
 
 // Simplified placeholder for geo features (not needed for pushups)
 export const geoJsonForRuns = (runs: Activity[]): any => ({
   type: 'FeatureCollection',
   features: [],
 });
-
-// For running geo (not needed for pushups but kept for compatibility)
-export const getBoundsForGeoData = (
-  geoData: GeoJSON.FeatureCollection<GeoJSON.LineString>
-): [[number, number], [number, number]] => {
-  const { features } = geoData;
-  let minLat = 90;
-  let maxLat = -90;
-  let minLng = 180;
-  let maxLng = -180;
-
-  for (const feature of features) {
-    const { coordinates } = feature.geometry;
-    for (const [lng, lat] of coordinates) {
-      minLat = Math.min(minLat, lat);
-      maxLat = Math.max(maxLat, lat);
-      minLng = Math.min(minLng, lng);
-      maxLng = Math.max(maxLng, lng);
-    }
-  }
-
-  return [
-    [minLng, minLat],
-    [maxLng, maxLat],
-  ];
-};
