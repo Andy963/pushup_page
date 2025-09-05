@@ -14,12 +14,14 @@ def extract_pushup_count(activity):
     """
     # Common patterns to look for pushups in text
     patterns = [
-        r'(\d+)\s*push[\s-]*ups?',
-        r'push[\s-]*ups?\s*[:\-]?\s*(\d+)',
+        r'(\d+)\s*push[\s-]*ups?',  # "100 pushups", "50 push-ups"
+        r'push[\s-]*ups?\s*[:\-]?\s*(\d+)',  # "push-ups: 50", "pushups 25"
         r'(\d+)\s*俯卧撑',  # Chinese
-        r'俯卧撑\s*[:\-]?\s*(\d+)',
-        r'pushup[s]?\s*[:\-]?\s*(\d+)',
-        r'(\d+)\s*pushup[s]?',
+        r'俯卧撑\s*[:\-]?\s*(\d+)',  # Chinese with count
+        r'pushup[s]?\s*[:\-]?\s*(\d+)',  # "pushup: 90", "pushups 25"
+        r'(\d+)\s*pushup[s]?',  # "50 pushups"
+        r'pushup\s+[a-z]*\s*[:\-]?\s*(\d+)',  # "pushup test: 90", "pushup challenge 150"
+        r'(\d+)$',  # Just a number at the end, like "Daily pushup challenge - 150"
     ]
     
     # Combine all text sources
@@ -37,7 +39,11 @@ def extract_pushup_count(activity):
         if matches:
             # Return the first numeric match found
             try:
-                return int(matches[0])
+                # Handle the special case where the pattern might be at the end
+                if pattern == r'(\d+)$' and ('pushup' in combined_text or '俯卧撑' in combined_text):
+                    return int(matches[0])
+                elif pattern != r'(\d+)$':  # For non-ending patterns
+                    return int(matches[0])
             except (ValueError, IndexError):
                 continue
     
