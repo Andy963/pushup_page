@@ -1,8 +1,8 @@
 [project]
-name = "running_page"
+name = "pushup_page"
 version = "2.5.1"
-description = "Default template for PDM package"
-authors = [{ name = "yihong0618", email = "zouzou0208@gmail.com" }]
+description = "Personal pushup tracking page"
+authors = [{ name = "Andy963", email = "16980400+Andy963@users.noreply.github.com" }]
 dependencies = [
   "httpx",
   "gpxpy==1.6.2",
