@@ -48,12 +48,11 @@ class Generator:
         print("last activity date:", last_activity_date_str)
         if last_activity_date_str:
             last_activity_date = arrow.get(last_activity_date_str)
-            last_activity_date = last_activity_date.shift(days=-290)
+            last_activity_date = last_activity_date.shift(days=-7)
             filters = {"after": last_activity_date.datetime}
         else:
             filters = {"before": datetime.datetime.now(datetime.timezone.utc)}
-        limit = 500
-        activities = list(self.client.get_activities(**filters, limit=limit))[20:40]
+        activities = list(self.client.get_activities(**filters, limit=10))
 
         for activity in activities:
             print('activity', activity.id, activity.name)
