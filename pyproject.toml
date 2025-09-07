@@ -1,52 +1,15 @@
 [project]
-name = "running_page"
-version = "2.5.1"
+name = "pushup_page"
+version = "0.1.0"
 description = "Default template for PDM package"
-authors = [{ name = "yihong0618", email = "zouzou0208@gmail.com" }]
-dependencies = [
-  "httpx",
-  "gpxpy==1.6.2",
-  "stravalib==0.10.4",
-  "appdirs>=1.4.0",
-  "svgwrite>=1.1.9",
-  "colour>=0.1.5",
-  "s2sphere",
-  "arrow",
-  "geopy",
-  "polyline",
-  "sqlalchemy",
-  "tzfpy; platform_system != \"Windows\"",
-  "timezonefinder; platform_system == \"Windows\"",
-  "pyyaml",
-  "aiofiles",
-  "cloudscraper",
-  "tcxreader",
-  "rich",
-  "lxml",
-  "eviltransform",
-  "stravaweblib",
-  "tenacity",
-  "numpy",
-  "tzlocal",
-  "fit-tool",
-  "garmin-fit-sdk",
-  "haversine==2.8.0",
-  "garth",
-  "pycryptodome",
-  "duckdb",
-  "openai",
-  "svglib>=1.5.1",
-  "cairosvg>=2.7.1",
-  "certifi==2025.1.31",
+authors = [
+    {name = "Andy963", email = "Andy963@users.noreply.github.com"},
 ]
-requires-python = ">=3.12"
+dependencies = ["arrow>=1.3.0", "stravalib>=2.4", "sqlalchemy>=2.0.43", "dotenv>=0.9.9"]
+requires-python = "==3.10.*"
 readme = "README.md"
-license = { text = "MIT" }
-
-[build-system]
-requires = ["pdm-backend"]
-build-backend = "pdm.backend"
+license = {text = "MIT"}
 
 
 [tool.pdm]
-distribution = true
+distribution = false
