@@ -15,22 +15,10 @@ def main():
     columns = [description[0] for description in cursor.description]
     rows = cursor.fetchall()
 
-    def apply_duration_time(d):
-        try:
-            return d.split()[1].split(".")[0]
-        except Exception as e:
-            print(f"Error applying duration time: {e}")
-            return ""
-
     with open("pushup_data.csv", "w", newline="", encoding="utf-8") as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(columns)
-        for row in rows:
-            row = list(row)
-            if "elapsed_time" in columns:
-                elapsed_time_index = columns.index("elapsed_time")
-                row[elapsed_time_index] = apply_duration_time(row[elapsed_time_index])
-            writer.writerow(row)
+        writer.writerows(rows)
 
 
 if __name__ == "__main__":

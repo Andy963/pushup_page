@@ -7,6 +7,7 @@ import argparse
 
 from pushup_page.config import SQL_FILE
 from generator import Generator
+from pushup_page.data_to_csv import main as generate_csv
 
 
 def run_strava_sync(
@@ -17,7 +18,7 @@ def run_strava_sync(
     generator = Generator(SQL_FILE)
     generator.set_strava_config(client_id, client_secret, refresh_token)
     generator.sync(False)
-    
+    generate_csv()
 
 
 if __name__ == "__main__":
