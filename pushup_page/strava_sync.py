@@ -1,13 +1,10 @@
-import sys
-import os
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 import argparse
+import os
+import sys
 
-from pushup_page.config import SQL_FILE
-from generator import Generator
-from pushup_page.data_to_csv import main as generate_csv
+from .config import SQL_FILE
+from .data_to_csv import main as generate_csv
+from ..generator import Generator
 
 
 def run_strava_sync(

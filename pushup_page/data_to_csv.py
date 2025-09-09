@@ -1,11 +1,9 @@
-import sys
+import csv
 import os
 import sqlite3
-import csv
+import sys
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from pushup_page.config import SQL_FILE
+from .config import SQL_FILE
 
 
 def main():
