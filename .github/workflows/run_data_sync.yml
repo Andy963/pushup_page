@@ -63,8 +63,7 @@ jobs:
 
       - name: Run sync Strava script
         run: |
-          pdm run python -m pushup_page.strava_sync ${{ secrets.client_id }} ${{ secrets.client_secret }} ${{ secrets.refresh_token }}
-
+          pdm run python -m pushup_page.strava_sync ${{ secrets.CLIENT_ID }} ${{ secrets.CLIENT_SECRET }} ${{ secrets.REFRESH_TOKEN }}
       - name: Make svg GitHub profile
         env:
           TITLE: ${{ env.TITLE }}
