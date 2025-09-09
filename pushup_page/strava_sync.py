@@ -1,10 +1,8 @@
 import argparse
-import os
-import sys
 
-from .config import SQL_FILE
-from .data_to_csv import main as generate_csv
-from ..generator import Generator
+from pushup_page.config import SQL_FILE
+from generator import Generator
+from pushup_page.data_to_csv import main as generate_csv
 
 
 def run_strava_sync(

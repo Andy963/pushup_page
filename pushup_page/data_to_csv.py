@@ -1,9 +1,7 @@
-import csv
-import os
 import sqlite3
-import sys
+import csv
 
-from .config import SQL_FILE
+from pushup_page.config import SQL_FILE
 
 
 def main():

@@ -62,6 +62,8 @@ jobs:
             ${{ env.DATA_CACHE_PREFIX }}-
 
       - name: Run sync Strava script
+        env:
+          PYTHONPATH: .
         run: |
           python -m pushup_page.strava_sync ${{ secrets.STRAVA_CLIENT_ID }} ${{ secrets.STRAVA_CLIENT_SECRET }} ${{ secrets.STRAVA_CLIENT_REFRESH_TOKEN }}
 
