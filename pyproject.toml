@@ -13,3 +13,6 @@ license = {text = "MIT"}
 
 [tool.pdm]
 distribution = false
+
+[tool.pdm.scripts]
+sync = "python -m pushup_page.strava_sync"
