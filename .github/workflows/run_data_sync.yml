@@ -73,7 +73,6 @@ jobs:
         run: |
           python pushup_page/gen_svg.py --from-db --title "$TITLE" --type github --github-style "align-firstday" --athlete "$ATHLETE" --output assets/pushup_github.svg --use-localtime
           python pushup_page/gen_svg.py --from-db --title "$TITLE_GRID" --type grid --athlete "$ATHLETE" --output assets/pushup_grid.svg --use-localtime
-  # Month of life generation removed
 
       - name: Set Output
         id: set_output
