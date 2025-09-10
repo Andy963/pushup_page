@@ -1,6 +1,5 @@
 import datetime
 import re
-import os
 import sys
 
 import arrow
@@ -31,7 +30,7 @@ class Generator:
             refresh_token=self.refresh_token,
         )
         # Update the authdata object
-        self.access_token  = response["access_token"]
+        self.access_token = response["access_token"]
         self.refresh_token = response["refresh_token"]
 
         self.client.access_token = response["access_token"]
@@ -47,7 +46,9 @@ class Generator:
         if start_date:
             filters = {"after": start_date}
         else:
-            last_activity_date_str = self.session.query(func.max(Activity.start_date)).scalar()
+            last_activity_date_str = self.session.query(
+                func.max(Activity.start_date)
+            ).scalar()
             print("last activity date:", last_activity_date_str)
             if last_activity_date_str:
                 last_activity_date = arrow.get(last_activity_date_str)
@@ -58,17 +59,17 @@ class Generator:
         activities = list(self.client.get_activities(**filters, limit=10))
 
         for activity in activities:
-            print('activity', activity.id, activity.start_date)
-            if 'push-ups' not in str(activity.name).lower():
+            print("activity", activity.id, activity.start_date)
+            if "push-ups" not in str(activity.name).lower():
                 continue
-            
+
             activity_detail = self.client.get_activity(activity.id)
             # description='Total Reps: 57\nAverage Time per Push-Up: 0.67s\nBurned Calories: 18.06\n\nData from Puuush App\nhttps://puuush.wsfu.co/andyzhou'
             desc = activity_detail.description
             # get count ,avg, coliries, from description
-            if not desc or 'Total Reps' not in desc:
+            if not desc or "Total Reps" not in desc:
                 print(f"skip activity {activity.id} since no count found")
-                continue    
+                continue
 
             count_match = re.search(r"Total Reps: (\d+)", desc)
             avg_match = re.search(r"Average Time per Push-Up: (\d+(\.\d+)?)s", desc)
@@ -78,8 +79,9 @@ class Generator:
             avg_time = float(avg_match.group(1)) if avg_match else 0.0
             calories = float(calories_match.group(1)) if calories_match else 0.0
 
-
-            created = update_or_create_activity(self.session, activity_detail,count, avg_time, calories)
+            created = update_or_create_activity(
+                self.session, activity_detail, count, avg_time, calories
+            )
             if created:
                 sys.stdout.write("+")
             else:

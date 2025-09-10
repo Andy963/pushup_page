@@ -1,6 +1,5 @@
 """Handle parsing of GPX files and writing/loading of cached data"""
 
-
 # Copyright 2016-2023 Florian Pigorsch & Contributors. All rights reserved.
 #
 # Use of this source code is governed by a MIT-style
@@ -16,14 +15,12 @@ import shutil
 import typing
 from typing import Any
 
-import pint  # type: ignore
 import s2sphere  # type: ignore
 from stravalib import Client  # type: ignore
 
 from .exceptions import ParameterError, TrackLoadError
 from .timezone_adjuster import TimezoneAdjuster
 from .track import Track
-from .units import Units
 from .year_range import YearRange
 from generator.db import init_db, Activity
 
@@ -112,7 +109,10 @@ class TrackLoader:
         # load remaining gpx files
         remaining_file_names = [f for f in file_names if f not in cached_tracks]
         if remaining_file_names:
-            log.info("Trying to load %d track(s) from GPX files; this may take a while...", len(remaining_file_names))
+            log.info(
+                "Trying to load %d track(s) from GPX files; this may take a while...",
+                len(remaining_file_names),
+            )
             timezone_adjuster = TimezoneAdjuster()
             loaded_tracks = self._load_tracks(remaining_file_names, timezone_adjuster)
             tracks.extend(loaded_tracks.values())
@@ -165,7 +165,9 @@ class TrackLoader:
             t.file_names = [str(activity.run_id)]
             start_date = datetime.datetime.fromisoformat(activity.start_date)
             t.set_start_time(start_date)
-            t.set_end_time(start_date + datetime.timedelta(seconds=activity.elapsed_time))
+            t.set_end_time(
+                start_date + datetime.timedelta(seconds=activity.elapsed_time)
+            )
             t.count = activity.count
             if with_polyine:
                 # TODO: get polyline from db
@@ -182,13 +184,19 @@ class TrackLoader:
             elif not t.has_time():
                 log.info("%s: skipping track without start or end time", file_name)
             elif not self.year_range.contains(t.start_time()):
-                log.info("%s: skipping track with wrong year %d", file_name, t.start_time().year)
+                log.info(
+                    "%s: skipping track with wrong year %d",
+                    file_name,
+                    t.start_time().year,
+                )
             else:
                 t.special = file_name in self.special_file_names
                 filtered_tracks.append(t)
         return filtered_tracks
 
-    def _filter_and_merge_tracks(self, tracks: typing.List[Track]) -> typing.List[Track]:
+    def _filter_and_merge_tracks(
+        self, tracks: typing.List[Track]
+    ) -> typing.List[Track]:
         tracks = self._filter_tracks(tracks)
         # merge tracks that took place within one hour
         tracks = self._merge_tracks(tracks)
@@ -232,9 +240,12 @@ class TrackLoader:
                     tracks[file_name] = t
             return tracks
 
-        with concurrent.futures.ProcessPoolExecutor(max_workers=self._workers) as executor:
+        with concurrent.futures.ProcessPoolExecutor(
+            max_workers=self._workers
+        ) as executor:
             future_to_file_name = {
-                executor.submit(load_gpx_file, file_name, timezone_adjuster): file_name for file_name in file_names
+                executor.submit(load_gpx_file, file_name, timezone_adjuster): file_name
+                for file_name in file_names
             }
         for future in concurrent.futures.as_completed(future_to_file_name):
             file_name = future_to_file_name[future]
@@ -247,13 +258,17 @@ class TrackLoader:
 
         return tracks
 
-    def _load_tracks_from_cache(self, file_names: typing.List[str]) -> typing.Dict[str, Track]:
+    def _load_tracks_from_cache(
+        self, file_names: typing.List[str]
+    ) -> typing.Dict[str, Track]:
         tracks = {}
 
         if self._workers is not None and self._workers <= 1:
             for file_name in file_names:
                 try:
-                    t = load_cached_track_file(self._get_cache_file_name(file_name), file_name)
+                    t = load_cached_track_file(
+                        self._get_cache_file_name(file_name), file_name
+                    )
                 except Exception:
                     # silently ignore failed cache load attempts
                     pass
@@ -261,9 +276,15 @@ class TrackLoader:
                     tracks[file_name] = t
             return tracks
 
-        with concurrent.futures.ProcessPoolExecutor(max_workers=self._workers) as executor:
+        with concurrent.futures.ProcessPoolExecutor(
+            max_workers=self._workers
+        ) as executor:
             future_to_file_name = {
-                executor.submit(load_cached_track_file, self._get_cache_file_name(file_name), file_name): file_name
+                executor.submit(
+                    load_cached_track_file,
+                    self._get_cache_file_name(file_name),
+                    file_name,
+                ): file_name
                 for file_name in file_names
             }
         for future in concurrent.futures.as_completed(future_to_file_name):
@@ -306,7 +327,12 @@ class TrackLoader:
     def _make_strava_cache_dict(track: Track) -> typing.Dict[str, Any]:
         lines_data = []
         for line in track.polylines:
-            lines_data.append([{"lat": latlng.lat().degrees, "lng": latlng.lng().degrees} for latlng in line])
+            lines_data.append(
+                [
+                    {"lat": latlng.lat().degrees, "lng": latlng.lng().degrees}
+                    for latlng in line
+                ]
+            )
         return {
             "name": track.file_names[0],  # strava id
             "start": track.start_time().strftime("%Y-%m-%d %H:%M:%S"),
@@ -324,7 +350,12 @@ class TrackLoader:
         t.length_meters = float(data["length"])
         t.polylines = []
         for data_line in data["segments"]:
-            t.polylines.append([s2sphere.LatLng.from_degrees(float(d["lat"]), float(d["lng"])) for d in data_line])
+            t.polylines.append(
+                [
+                    s2sphere.LatLng.from_degrees(float(d["lat"]), float(d["lng"]))
+                    for d in data_line
+                ]
+            )
         return t
 
     @staticmethod

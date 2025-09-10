@@ -71,7 +71,9 @@ def main() -> None:
         default="all",
         help='Filter tracks by year; "NUM", "NUM-NUM", "all" (default: all years)',
     )
-    args_parser.add_argument("--title", metavar="TITLE", type=str, help="Title to display.")
+    args_parser.add_argument(
+        "--title", metavar="TITLE", type=str, help="Title to display."
+    )
     args_parser.add_argument(
         "--athlete",
         metavar="NAME",
@@ -84,7 +86,8 @@ def main() -> None:
         metavar="FILE",
         action="append",
         default=[],
-        help="Mark track file from the GPX directory as special; use multiple times to mark " "multiple tracks.",
+        help="Mark track file from the GPX directory as special; use multiple times to mark "
+        "multiple tracks.",
     )
     types = '", "'.join(drawers.keys())
     args_parser.add_argument(
@@ -167,7 +170,9 @@ def main() -> None:
         type=str,
         help="JSON file containing config used to get activities from strava",
     )
-    args_parser.add_argument("--verbose", dest="verbose", action="store_true", help="Verbose logging.")
+    args_parser.add_argument(
+        "--verbose", dest="verbose", action="store_true", help="Verbose logging."
+    )
     args_parser.add_argument("--logfile", dest="logfile", metavar="FILE", type=str)
     args_parser.add_argument(
         "--special-distance",
@@ -231,7 +236,9 @@ def main() -> None:
         log.addHandler(handler)
 
     loader = track_loader.TrackLoader(args.workers)
-    loader.set_cache_dir(os.path.join(appdirs.user_cache_dir(__app_name__, __app_author__), "tracks"))
+    loader.set_cache_dir(
+        os.path.join(appdirs.user_cache_dir(__app_name__, __app_author__), "tracks")
+    )
     if not loader.year_range.parse(args.year):
         raise ParameterError(f"Bad year range: {args.year}.")
 
@@ -250,7 +257,9 @@ def main() -> None:
             print("No tracks found.")
         return
 
-    print(f"Creating poster of type {args.type} with {len(tracks)} tracks and storing it in file {args.output}...")
+    print(
+        f"Creating poster of type {args.type} with {len(tracks)} tracks and storing it in file {args.output}..."
+    )
     p.set_language(args.language, args.localedir)
     p.set_athlete(args.athlete)
     p.set_title(args.title if args.title else p.translate("MY TRACKS"))

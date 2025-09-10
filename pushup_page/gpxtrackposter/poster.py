@@ -105,8 +105,9 @@ class Poster:
             length = sum([t.count for t in tracks])
             self.length_range_by_date.extend(length)
         for year in self.years.iter():
-            self.year_tracks_date_count_dict[year] = len([d for d in self.tracks_by_date if d.startswith(str(year))])
-
+            self.year_tracks_date_count_dict[year] = len(
+                [d for d in self.tracks_by_date if d.startswith(str(year))]
+            )
 
     def draw(self, drawer, output):
         """Set the Poster's drawer and draw the tracks."""
@@ -255,10 +256,16 @@ class Poster:
             total_count_year_dict[(t.start_time() + self.tc_offset).year] += t.count
             count_range.extend(t.count)
             # group by month
-            tracks_by_month[(t.start_time() + self.tc_offset).strftime('%Y-%m')].append(t.count)
+            tracks_by_month[(t.start_time() + self.tc_offset).strftime("%Y-%m")].append(
+                t.count
+            )
 
-        monthly_counts = {month: sum(counts) for month, counts in tracks_by_month.items()}
-        avg_monthly_count = sum(monthly_counts.values()) / len(monthly_counts) if monthly_counts else 0
+        monthly_counts = {
+            month: sum(counts) for month, counts in tracks_by_month.items()
+        }
+        avg_monthly_count = (
+            sum(monthly_counts.values()) / len(monthly_counts) if monthly_counts else 0
+        )
         max_monthly_count = max(monthly_counts.values()) if monthly_counts else 0
 
         self.total_length_year_dict = total_count_year_dict

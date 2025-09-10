@@ -1,6 +1,4 @@
 import datetime
-import re
-from datetime import timedelta
 
 from sqlalchemy import (
     Column,
@@ -33,7 +31,7 @@ class Activity(Base):
 
     run_id = Column(Integer, primary_key=True)
     name = Column(String)
-    start_date= Column(String)
+    start_date = Column(String)
     elapsed_time = Column(Integer)
     count = Column(Integer)
     avg_time = Column(Float)
@@ -50,13 +48,14 @@ class Activity(Base):
         return out
 
 
-def update_or_create_activity(session, run_activity,count=0, avg_time=0.0, calories=0.0):
+def update_or_create_activity(
+    session, run_activity, count=0, avg_time=0.0, calories=0.0
+):
     created = False
     try:
         activity = (
             session.query(Activity).filter_by(run_id=int(run_activity.id)).first()
         )
-
 
         if not activity:
             activity = Activity(

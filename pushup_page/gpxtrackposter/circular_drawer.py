@@ -66,7 +66,9 @@ class CircularDrawer(TracksDrawer):
         self._rings = args.circular_rings
         self._ring_color = args.circular_ring_color
 
-    def draw(self, dr: svgwrite.Drawing, g: svgwrite.container.Group, size: XY, offset: XY):
+    def draw(
+        self, dr: svgwrite.Drawing, g: svgwrite.container.Group, size: XY, offset: XY
+    ):
         dr.add(
             dr.rect(
                 insert=offset.tuple(),

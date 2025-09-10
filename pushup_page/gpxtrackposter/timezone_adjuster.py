@@ -19,13 +19,20 @@ class TimezoneAdjuster:
             TimezoneAdjuster._timezonefinder = timezonefinder.TimezoneFinder()
 
     @classmethod
-    def adjust(cls, time: datetime.datetime, latlng: s2sphere.LatLng) -> datetime.datetime:
+    def adjust(
+        cls, time: datetime.datetime, latlng: s2sphere.LatLng
+    ) -> datetime.datetime:
         # If a timezone is set, there's nothing to do.
         if time.utcoffset():
             return time
         assert cls._timezonefinder
         # if tz_name name is None set it to UTC
-        tz_name = cls._timezonefinder.timezone_at(lat=latlng.lat().degrees, lng=latlng.lng().degrees) or "UTC"
+        tz_name = (
+            cls._timezonefinder.timezone_at(
+                lat=latlng.lat().degrees, lng=latlng.lng().degrees
+            )
+            or "UTC"
+        )
         tz = pytz.timezone(tz_name)
         tz_time = time.astimezone(tz)
         return tz_time

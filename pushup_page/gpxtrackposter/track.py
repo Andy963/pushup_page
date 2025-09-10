@@ -1,4 +1,5 @@
 """Create and maintain info about a given activity track (corresponding to one GPX file)."""
+
 # Copyright 2016-2023 Florian Pigorsch & Contributors. All rights reserved.
 #
 # Use of this source code is governed by a MIT-style
@@ -52,7 +53,9 @@ class Track:
         self.special = False
         self.activity_type = None
 
-    def load_gpx(self, file_name: str, timezone_adjuster: typing.Optional[TimezoneAdjuster]) -> None:
+    def load_gpx(
+        self, file_name: str, timezone_adjuster: typing.Optional[TimezoneAdjuster]
+    ) -> None:
         """Load the GPX file into self.
 
         Args:
@@ -88,7 +91,9 @@ class Track:
         self._length_meters = float(activity.distance)
         summary_polyline = activity.map.summary_polyline
         polyline_data = polyline.decode(summary_polyline) if summary_polyline else []
-        self.polylines = [[s2sphere.LatLng.from_degrees(p[0], p[1]) for p in polyline_data]]
+        self.polylines = [
+            [s2sphere.LatLng.from_degrees(p[0], p[1]) for p in polyline_data]
+        ]
 
     def has_time(self) -> bool:
         return self._start_time is not None and self._end_time is not None
@@ -126,7 +131,9 @@ class Track:
                 bbox = bbox.union(s2sphere.LatLngRect.from_point(latlng.normalized()))
         return bbox
 
-    def _load_gpx_data(self, gpx: gpxpy.gpx.GPX, timezone_adjuster: typing.Optional[TimezoneAdjuster]) -> None:
+    def _load_gpx_data(
+        self, gpx: gpxpy.gpx.GPX, timezone_adjuster: typing.Optional[TimezoneAdjuster]
+    ) -> None:
         self._start_time, self._end_time = gpx.get_time_bounds()
         if not self.has_time():
             raise TrackLoadError("Track has no start or end time.")
@@ -141,7 +148,10 @@ class Track:
         gpx.simplify()
         for t in gpx.tracks:
             for s in t.segments:
-                line = [s2sphere.LatLng.from_degrees(p.latitude, p.longitude) for p in s.points]
+                line = [
+                    s2sphere.LatLng.from_degrees(p.latitude, p.longitude)
+                    for p in s.points
+                ]
                 self.polylines.append(line)
         if gpx.tracks[0].type:
             self.activity_type = gpx.tracks[0].type.lower()
@@ -166,13 +176,22 @@ class Track:
         try:
             with open(cache_file_name, encoding="utf8") as data_file:
                 data = json.load(data_file)
-                self.set_start_time(datetime.datetime.strptime(data["start"], "%Y-%m-%d %H:%M:%S"))
-                self.set_end_time(datetime.datetime.strptime(data["end"], "%Y-%m-%d %H:%M:%S"))
+                self.set_start_time(
+                    datetime.datetime.strptime(data["start"], "%Y-%m-%d %H:%M:%S")
+                )
+                self.set_end_time(
+                    datetime.datetime.strptime(data["end"], "%Y-%m-%d %H:%M:%S")
+                )
                 self._length_meters = float(data["length"])
                 self.polylines = []
                 for data_line in data["segments"]:
                     self.polylines.append(
-                        [s2sphere.LatLng.from_degrees(float(d["lat"]), float(d["lng"])) for d in data_line]
+                        [
+                            s2sphere.LatLng.from_degrees(
+                                float(d["lat"]), float(d["lng"])
+                            )
+                            for d in data_line
+                        ]
                     )
         except Exception as e:
             raise TrackLoadError("Failed to load track data from cache.") from e
@@ -185,7 +204,12 @@ class Track:
         with open(cache_file_name, "w", encoding="utf8") as json_file:
             lines_data = []
             for line in self.polylines:
-                lines_data.append([{"lat": latlng.lat().degrees, "lng": latlng.lng().degrees} for latlng in line])
+                lines_data.append(
+                    [
+                        {"lat": latlng.lat().degrees, "lng": latlng.lng().degrees}
+                        for latlng in line
+                    ]
+                )
             json.dump(
                 {
                     "start": self.start_time().strftime("%Y-%m-%d %H:%M:%S"),

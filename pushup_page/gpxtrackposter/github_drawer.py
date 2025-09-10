@@ -29,7 +29,9 @@ class GithubDrawer(TracksDrawer):
             return "0;1"
         return ";".join([str(i / (n - 1)) for i in range(n)])
 
-    def draw(self, dr: svgwrite.Drawing, g: svgwrite.container.Group, size: XY, offset: XY) -> None:
+    def draw(
+        self, dr: svgwrite.Drawing, g: svgwrite.container.Group, size: XY, offset: XY
+    ) -> None:
         if self.poster.tracks is None:
             raise PosterError("No tracks to draw")
         year_size = 200 * 4.0 / 80.0
@@ -45,7 +47,9 @@ class GithubDrawer(TracksDrawer):
             github_rect_first_day = datetime.date(year, 1, 1)
             # Github profile the first day start from the last Monday of the last year or the first Monday of this year
             # It depends on if the first day of this year is Monday or not.
-            github_rect_day = github_rect_first_day + datetime.timedelta(-start_date_weekday)
+            github_rect_day = github_rect_first_day + datetime.timedelta(
+                -start_date_weekday
+            )
             year_length = pint.Quantity(total_length_year_dict.get(year, 0))
             year_length_str = utils.format_float(self.poster.m2u(year_length.magnitude))
             month_names = [
@@ -113,7 +117,9 @@ class GithubDrawer(TracksDrawer):
                     if date_title in self.poster.tracks_by_date:
                         tracks = self.poster.tracks_by_date[date_title]
                         count = sum(t.count for t in tracks)
-                        color = self.color(self.poster.length_range_by_date, count, False)
+                        color = self.color(
+                            self.poster.length_range_by_date, count, False
+                        )
                         str_length = str(count)
                         date_title = f"{date_title} {str_length} {km_or_mi}"
                         # tricky for may cause animate error
@@ -123,7 +129,11 @@ class GithubDrawer(TracksDrawer):
                     rect = dr.rect((rect_x, rect_y), dom, fill=color)
                     if self.poster.with_animation:
                         values = (
-                            ";".join(["0"] * animate_index) + ";" + ";".join(["1"] * (len(key_times.split(";")) - animate_index))
+                            ";".join(["0"] * animate_index)
+                            + ";"
+                            + ";".join(
+                                ["1"] * (len(key_times.split(";")) - animate_index)
+                            )
                         )
                         rect.add(
                             svgwrite.animate.Animate(

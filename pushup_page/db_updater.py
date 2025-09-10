@@ -2,7 +2,6 @@ from generator.db import init_db, Activity
 from config import SQL_FILE
 import sqlalchemy
 from sqlalchemy import text
-from utils import make_activities_file
 
 
 def add_column_elevation_gain(session):
