@@ -14,9 +14,9 @@ on:
 
 env:
   RUN_TYPE: strava
-  ATHLETE: pushup_user
-  TITLE: Pushup Strava Sync
-  TITLE_GRID: Pushup Grid
+  ATHLETE: ${{ vars.ATHLETE }}
+  TITLE: ${{ vars.TITLE }}
+  TITLE_GRID: ${{ vars.TITLE_GRID }}
   SAVE_DATA_IN_GITHUB_CACHE: false
   DATA_CACHE_PREFIX: 'pushup_data'
   BUILD_GH_PAGES: true
@@ -84,7 +84,7 @@ jobs:
         run: |
           git config user.name ${{ env.ATHLETE }}
           git config user.email ${{ env.ATHLETE }}@users.noreply.github.com
-          git add assets/pushup_github.svg pushup_page/data.db pushup_data.csv
+          git add assets/pushup_github.svg data.db pushup_data.csv
           git commit -m "Update pushup_github.svg, data.db, and pushup_data.csv" || echo "No changes to commit"
           git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}
           git push origin HEAD:master
