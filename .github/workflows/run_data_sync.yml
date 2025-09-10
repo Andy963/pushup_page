@@ -81,6 +81,14 @@ jobs:
         run: |
           pdm run python -m pushup_page.gen_svg --from-db --title "$TITLE" --type github --github-style "align-firstday" --athlete "$ATHLETE" --output assets/pushup_github.svg --use-localtime
 
+      - name: Commit and push SVG
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add assets/pushup_github.svg
+          git commit -m "Update pushup_github.svg" || echo "No changes to commit"
+          git push
+
       - name: Set Output
         id: set_output
         env:
