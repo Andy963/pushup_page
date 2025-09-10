@@ -1,3 +1,7 @@
+## 
+魔改的 [yihong](https://github.com/yihong0618/running_page) 大哥的，因为我不跑步，只做俯卧撑，改成了俯卧撑主页。
+
+使用用的 App:Puuush, 需要分享到strava.
 ![Pushup Grid](assets/pushup_github.svg)
 
 ## Note
