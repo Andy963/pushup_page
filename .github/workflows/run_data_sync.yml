@@ -69,6 +69,10 @@ jobs:
           REFRESH_TOKEN: ${{ secrets.REFRESH_TOKEN }}
         run: |
           pdm run python -m pushup_page.strava_sync ${{ secrets.CLIENT_ID }} ${{ secrets.CLIENT_SECRET }} ${{ secrets.REFRESH_TOKEN }}
+
+      - name: Gen CSV file
+        run: |
+          pdm run python -m pushup_page.data_to_csv
       - name: Make svg GitHub profile
         env:
           TITLE: ${{ env.TITLE }}

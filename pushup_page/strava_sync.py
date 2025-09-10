@@ -1,5 +1,7 @@
 import argparse
 import sys
+import datetime
+import stravalib
 
 from pushup_page.config import SQL_FILE
 from generator import Generator
@@ -9,7 +11,14 @@ from pushup_page.data_to_csv import main as generate_csv
 def run_strava_sync(client_id, client_secret, refresh_token, ):
     generator = Generator(SQL_FILE)
     generator.set_strava_config(client_id, client_secret, refresh_token)
-    generator.sync(False)
+    
+    # Sync from May 11, 2025
+    start_date = datetime.datetime(*(2025,8,20,6,39,0))
+    try:
+        generator.sync(False, start_date=start_date)
+    except stravalib.exc.RateLimitExceeded:
+        print("Strava API rate limit exceeded. Stopping sync.")
+        
     generate_csv()
 
 

@@ -37,25 +37,28 @@ class Generator:
         self.client.access_token = response["access_token"]
         print("Access ok")
 
-    def sync(self, force):
+    def sync(self, force, start_date=None):
         """
         Sync activities means sync from strava
         """
         self.check_access()
 
         print("Start syncing")
-        last_activity_date_str = self.session.query(func.max(Activity.start_date)).scalar()
-        print("last activity date:", last_activity_date_str)
-        if last_activity_date_str:
-            last_activity_date = arrow.get(last_activity_date_str)
-            last_activity_date = last_activity_date.shift(days=-7)
-            filters = {"after": last_activity_date.datetime}
+        if start_date:
+            filters = {"after": start_date}
         else:
-            filters = {"before": datetime.datetime.now(datetime.timezone.utc)}
+            last_activity_date_str = self.session.query(func.max(Activity.start_date)).scalar()
+            print("last activity date:", last_activity_date_str)
+            if last_activity_date_str:
+                last_activity_date = arrow.get(last_activity_date_str)
+                last_activity_date = last_activity_date.shift(days=-7)
+                filters = {"after": last_activity_date.datetime}
+            else:
+                filters = {"before": datetime.datetime.now(datetime.timezone.utc)}
         activities = list(self.client.get_activities(**filters, limit=10))
 
         for activity in activities:
-            print('activity', activity.id, activity.name)
+            print('activity', activity.id, activity.start_date)
             if 'push-ups' not in str(activity.name).lower():
                 continue
             
