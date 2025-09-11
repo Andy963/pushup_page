@@ -77,7 +77,7 @@ def update_or_create_activity(
     except Exception as e:
         print(f"something wrong with {run_activity.id}")
         print(str(e))
-        # session.rollback()
+        session.rollback()
 
     return created
 
