@@ -2,7 +2,7 @@ import argparse
 import logging
 import os
 import sys
-
+import datetime
 from pushup_page.config import SQL_FILE
 from pushup_page.gpxtrackposter import (
     circular_drawer,
@@ -19,6 +19,51 @@ __app_name__ = "create_poster"
 __app_author__ = "flopp.net"
 
 
+# Utility function to calculate pushup streak
+def calculate_streak(tracks):
+    """Calculates the current push-up streak from a list of tracks."""
+    if not tracks:
+        return 0
+
+    # Assume each track has a start_date attribute
+    dates = []
+    for track in tracks:
+        date_val = getattr(track, "start_date", None)
+        if date_val:
+            if hasattr(date_val, "date"):
+                dates.append(date_val.date())
+            else:
+                dates.append(date_val)
+    dates = sorted(list(set(dates)), reverse=True)
+    if not dates:
+        return 0
+
+    today = datetime.date.today()
+    if dates[0] != today and dates[0] != today - datetime.timedelta(days=1):
+        return 0
+
+    streak = 0
+    if dates[0] == today:
+        streak += 1
+        dates.pop(0)
+
+    if not dates:
+        return streak
+
+    for i, date in enumerate(dates):
+        if i == 0:
+            if today - date == datetime.timedelta(days=1):
+                streak += 1
+            else:
+                break
+        else:
+            if dates[i - 1] - date == datetime.timedelta(days=1):
+                streak += 1
+            else:
+                break
+    return streak
+
+
 def main():
     """Handle command line arguments and call other modules as needed."""
 
@@ -31,12 +76,13 @@ def main():
     }
 
     args_parser = argparse.ArgumentParser()
+    current_year = datetime.date.today().year
     args_parser.add_argument(
         "--output",
         metavar="FILE",
         type=str,
-        default="poster.svg",
-        help='Name of generated SVG image file (default: "poster.svg").',
+        default=f"assets/github_{current_year}.svg",
+        help=f'Name of generated SVG image file (default: "assets/github_{current_year}.svg").',
     )
     args_parser.add_argument(
         "--language",
@@ -59,8 +105,8 @@ def main():
         "--athlete",
         metavar="NAME",
         type=str,
-        default="John Doe",
-        help='Athlete name to display (default: "John Doe").',
+        default="Andy963",
+        help='Athlete name to display (default: "Andy963").',
     )
     types = '", "'.join(drawers.keys())
     args_parser.add_argument(
@@ -146,15 +192,6 @@ def main():
     )
 
     args_parser.add_argument(
-        "--sport-type",
-        dest="sport_type",
-        metavar="SPORT_TYPE",
-        type=str,
-        default="all",
-        help="Sport type",
-    )
-
-    args_parser.add_argument(
         "--workers",
         dest="workers",
         metavar="WORKERS",
@@ -199,18 +236,15 @@ def main():
 
     loader.set_min_count(args.min_count)
 
-    if args.from_db:
-        # for svg from db here if you want gpx please do not use --from-db
-        # args.type == "grid" means have polyline data or not
-        tracks = loader.load_tracks_from_db(SQL_FILE, args.type == "grid")
-    else:
-        tracks = loader.load_tracks(args.gpx_dir)
-
-    if args.sport_type != "all":
-        tracks = [track for track in tracks if track.type == args.sport_type]
+    # Only support loading tracks from DB
+    tracks = loader.load_tracks_from_db(SQL_FILE, args.type == "grid")
 
     if not tracks:
         return
+
+    # Print streak value
+    streak = calculate_streak(tracks)
+    print(f"Current push-up streak: {streak} days")
 
     is_circular = args.type == "circular"
     is_mol = args.type == "monthoflife"

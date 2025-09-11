@@ -76,7 +76,7 @@ jobs:
           TITLE_GRID: ${{ env.TITLE_GRID }}
           ATHLETE: ${{ env.ATHLETE }}
         run: |
-          pdm run python -m pushup_page.gen_svg --from-db --title "$TITLE" --type github --github-style "align-firstday" --athlete "$ATHLETE" --output assets/pushup_github.svg --use-localtime
+          pdm run python -m pushup_page.gen_svg --from-db --title "$TITLE" --type github --github-style "align-firstday" --athlete "$ATHLETE" --output assets/github_2025.svg --use-localtime
 
       - name: Commit and push Data & SVG
         env:
