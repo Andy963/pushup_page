@@ -6,7 +6,7 @@
 
 ![weekly_chart](assets/weekly_chart.svg)
 
-![monthly_chat](assets/monthly_chat.svg)
+![monthly_chart](assets/monthly_chart.svg)
 
 ![yearly_chart](assets/yearly_chart.svg)
 
