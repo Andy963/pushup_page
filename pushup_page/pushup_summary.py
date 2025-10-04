@@ -1,11 +1,12 @@
-import svgwrite
 import datetime
 from collections import defaultdict
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine
-from dateutil.parser import parse
-from generator.db import Activity, Base
 
+import svgwrite
+from dateutil.parser import parse
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+from generator.db import Activity
 
 # Database setup
 SQL_FILE = "data.db"

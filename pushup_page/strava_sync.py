@@ -13,7 +13,6 @@ from generator import Generator
 from generator.db import Activity
 
 
-
 def get_last_activity_date():
     """Fetches the start_date of the most recent activity from the database."""
     engine = create_engine(f"sqlite:///{SQL_FILE}")
