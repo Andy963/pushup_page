@@ -78,14 +78,18 @@ jobs:
         run: |
           pdm run python -m pushup_page.gen_svg --from-db --title "$TITLE" --type github --github-style "align-firstday" --athlete "$ATHLETE" --output assets/github_2025.svg --use-localtime
 
+      - name: Generate summary charts
+        run: |
+          pdm run python -m pushup_page.pushup_summary
+
       - name: Commit and push Data & SVG
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name ${{ env.ATHLETE }}
           git config user.email ${{ env.ATHLETE }}@users.noreply.github.com
-          git add assets/pushup_github.svg data.db pushup_data.csv
-          git commit -m "Update pushup_github.svg, data.db, and pushup_data.csv" || echo "No changes to commit"
+          git add assets/github_2025.svg assets/yearly_chart.svg assets/monthly_chart.svg assets/weekly_chart.svg data.db pushup_data.csv
+          git commit -m "Update SVG charts, data.db, and pushup_data.csv" || echo "No changes to commit"
           git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}
           git push origin HEAD:master
 
