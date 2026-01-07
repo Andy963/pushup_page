@@ -119,13 +119,20 @@ pnpm develop
 6. 同步数据至 Strava
    在项目根目录执行：
 
-   > 第一次同步 Strava 数据时需要更改在 strava_sync.py 中的第 12 行代码 False 改为 True，运行完成后，再改为 False。
+   ```bash
+   pdm run sync ${client_id} ${client_secret} ${refresh_token}
+   ```
 
-   仅同步跑步数据，添加参数 --only-run
+   或者使用环境变量（GitHub Actions 也使用这组变量名）：
 
    ```bash
-   python run_page/strava_sync.py ${client_id} ${client_secret} ${refresh_token}
+   export CLIENT_ID=...
+   export CLIENT_SECRET=...
+   export REFRESH_TOKEN=...
+   pdm run sync
    ```
+
+   可选：通过 `--start-date` 覆盖同步起始时间（默认会从数据库最近一条活动之后开始同步）。
 
    其他资料参见
    <https://developers.strava.com/docs/getting-started>

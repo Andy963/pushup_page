@@ -1,18 +1,55 @@
 [project]
 name = "pushup_page"
 version = "0.1.0"
-description = "Default template for PDM package"
-authors = [
-    {name = "Andy963", email = "Andy963@users.noreply.github.com"},
+description = "Generate push-up SVG posters and charts from Strava data"
+authors = [{ name = "Andy963", email = "Andy963@users.noreply.github.com" }]
+dependencies = [
+    "arrow>=1.3.0",
+    "stravalib>=2.4",
+    "sqlalchemy>=2.0.43",
+    "svgwrite>=1.4.3",
+    "colour>=0.1.5",
+    "s2sphere>=0.2.5",
+    "timezonefinder>=8.0.0",
+    "gpxpy>=1.6.2",
+    "polyline>=2.0.3",
+    "python-dateutil>=2.9.0.post0",
+    "pint>=0.25",
+    "geopy>=2.4.0",
 ]
-dependencies = ["arrow>=1.3.0", "stravalib>=2.4", "sqlalchemy>=2.0.43", "dotenv>=0.9.9", "svgwrite>=1.4.3", "colour>=0.1.5", "s2sphere>=0.2.5", "timezonefinder>=8.0.0", "gpxpy>=1.6.2", "polyline>=2.0.3", "black>=25.1.0", "ruff>=0.8.4"]
 requires-python = ">=3.11"
 readme = "README.md"
-license = {text = "MIT"}
-
+license = { text = "MIT" }
 
 [tool.pdm]
 distribution = false
 
+[tool.pdm.dev-dependencies]
+dev = ["black>=25.1.0", "ruff>=0.8.4", "pytest>=8.0.0"]
+
 [tool.pdm.scripts]
 sync = "python -m pushup_page.strava_sync"
+svg = "python -m pushup_page.gen_svg --from-db --type github --github-style align-firstday"
+summary = "python -m pushup_page.pushup_summary"
+
+[tool.black]
+line-length = 88
+target-version = ["py311"]
+extend-exclude = '''
+/pushup_page/gpxtrackposter/
+'''
+
+[tool.ruff]
+target-version = "py311"
+line-length = 88
+extend-exclude = ["pushup_page/gpxtrackposter"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["pushup_page", "generator", "gpxtrackposter"]
+
+[tool.pytest.ini_options]
+addopts = ["--import-mode=prepend"]
+testpaths = ["tests"]

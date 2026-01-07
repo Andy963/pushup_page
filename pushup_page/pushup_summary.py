@@ -1,25 +1,35 @@
-import datetime
+from __future__ import annotations
+
+import datetime as dt
 from collections import defaultdict
 
 import svgwrite
 from dateutil.parser import parse
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
-from generator.db import Activity
-
-# Database setup
-SQL_FILE = "data.db"
-engine = create_engine(f"sqlite:///{SQL_FILE}")
-Session = sessionmaker(bind=engine)
+from pushup_page.config import ASSETS_DIR
+from pushup_page.stats import (
+    activity_dates_from_start_date_strings,
+)
+from pushup_page.stats import (
+    calculate_streak as calculate_date_streak,
+)
+from pushup_page.storage import list_activities, open_session
 
 
 def get_data():
     """Fetches activity data from the database."""
-    session = Session()
-    activities = session.query(Activity).order_by(Activity.start_date).all()
-    session.close()
-    return activities
+    with open_session() as session:
+        return list_activities(session)
+
+
+def parse_activity_datetime(start_date: str) -> dt.datetime | None:
+    try:
+        return dt.datetime.fromisoformat(start_date)
+    except ValueError:
+        try:
+            return parse(start_date)
+        except (ValueError, TypeError):
+            return None
 
 
 def process_data(activities):
@@ -30,16 +40,15 @@ def process_data(activities):
 
     for act in activities:
         if act.start_date and act.count:
-            try:
-                date = parse(act.start_date)
-            except (ValueError, TypeError):
+            date = parse_activity_datetime(act.start_date)
+            if date is None:
                 print(f"Could not parse date: {act.start_date}")
                 continue
 
             yearly[date.year] += act.count
             monthly[date.strftime("%Y-%m")] += act.count
             # Group by the date of the first day of the week (Sunday)
-            first_day_of_week = date - datetime.timedelta(days=(date.weekday() + 1) % 7)
+            first_day_of_week = date - dt.timedelta(days=(date.weekday() + 1) % 7)
             weekly[first_day_of_week.strftime("%Y-%m-%d")] += act.count
 
     return yearly, monthly, weekly
@@ -127,43 +136,12 @@ def draw_bar_chart(dwg, data, title, width, height, bar_padding=5):
     )
 
 
-def calculate_streak(activities):
-    """Calculates the current push-up streak."""
-    if not activities:
-        return 0
-
-    dates = sorted(
-        list(set(parse(act.start_date).date() for act in activities)), reverse=True
+def calculate_activity_streak(activities):
+    """Backward-compatible wrapper for the old API."""
+    dates = activity_dates_from_start_date_strings(
+        act.start_date for act in activities if act.start_date
     )
-
-    if not dates:
-        return 0
-
-    today = datetime.date.today()
-    if dates[0] != today and dates[0] != today - datetime.timedelta(days=1):
-        return 0
-
-    streak = 0
-    if dates[0] == today:
-        streak += 1
-        dates.pop(0)
-
-    if not dates:
-        return streak
-
-    for i, date in enumerate(dates):
-        if i == 0:
-            if today - date == datetime.timedelta(days=1):
-                streak += 1
-            else:
-                break
-        else:
-            if dates[i - 1] - date == datetime.timedelta(days=1):
-                streak += 1
-            else:
-                break
-
-    return streak
+    return calculate_date_streak(dates)
 
 
 def main():
@@ -175,11 +153,13 @@ def main():
 
     yearly_data, monthly_data, weekly_data = process_data(activities)
 
-    streak = calculate_streak(activities)
+    streak = calculate_activity_streak(activities)
     print(f"Current streak: {streak} days")
 
+    ASSETS_DIR.mkdir(parents=True, exist_ok=True)
+
     # --- Generate Yearly Chart ---
-    output_yearly = "assets/yearly_chart.svg"
+    output_yearly = str(ASSETS_DIR / "yearly_chart.svg")
     width, height = 1800, 600
     dwg_yearly = svgwrite.Drawing(output_yearly, profile="full", size=(width, height))
     dwg_yearly.add(dwg_yearly.rect(size=("100%", "100%"), fill="#222222"))
@@ -194,7 +174,7 @@ def main():
     print(f"Yearly chart saved to {output_yearly}")
 
     # --- Generate Monthly Chart ---
-    output_monthly = "assets/monthly_chart.svg"
+    output_monthly = str(ASSETS_DIR / "monthly_chart.svg")
     dwg_monthly = svgwrite.Drawing(output_monthly, profile="full", size=(width, height))
     dwg_monthly.add(dwg_monthly.rect(size=("100%", "100%"), fill="#222222"))
     draw_bar_chart(
@@ -209,7 +189,7 @@ def main():
     print(f"Monthly chart saved to {output_monthly}")
 
     # --- Generate Weekly Chart ---
-    output_weekly = "assets/weekly_chart.svg"
+    output_weekly = str(ASSETS_DIR / "weekly_chart.svg")
     dwg_weekly = svgwrite.Drawing(output_weekly, profile="full", size=(width, height))
     dwg_weekly.add(dwg_weekly.rect(size=("100%", "100%"), fill="#222222"))
     # Sort and take last 52 weeks for the weekly chart

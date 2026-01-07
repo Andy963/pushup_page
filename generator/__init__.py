@@ -1,6 +1,9 @@
-import datetime
+from __future__ import annotations
+
+import datetime as dt
 import re
 import sys
+from typing import Iterable
 
 import arrow
 import stravalib
@@ -8,9 +11,13 @@ from sqlalchemy import func
 
 from .db import Activity, init_db, update_or_create_activity
 
+COUNT_RE = re.compile(r"Total Reps: (\d+)")
+AVG_RE = re.compile(r"Average Time per Push-Up: (\d+(\.\d+)?)s")
+CALORIES_RE = re.compile(r"Burned Calories: (\d+(\.\d+)?)")
+
 
 class Generator:
-    def __init__(self, db_path):
+    def __init__(self, db_path: str):
         self.client = stravalib.Client()
         self.session = init_db(db_path)
 
@@ -18,12 +25,15 @@ class Generator:
         self.client_secret = ""
         self.refresh_token = ""
 
-    def set_strava_config(self, client_id, client_secret, refresh_token):
+    def close(self) -> None:
+        self.session.close()
+
+    def set_strava_config(self, client_id: str, client_secret: str, refresh_token: str):
         self.client_id = client_id
         self.client_secret = client_secret
         self.refresh_token = refresh_token
 
-    def check_access(self):
+    def check_access(self) -> None:
         response = self.client.refresh_access_token(
             client_id=self.client_id,
             client_secret=self.client_secret,
@@ -36,7 +46,7 @@ class Generator:
         self.client.access_token = response["access_token"]
         print("Access ok")
 
-    def sync(self, force, start_date=None):
+    def sync(self, force: bool, start_date: dt.datetime | None = None) -> None:
         """
         Sync activities means sync from strava
         """
@@ -55,7 +65,7 @@ class Generator:
                 last_activity_date = last_activity_date.shift(days=-7)
                 filters = {"after": last_activity_date.datetime}
             else:
-                filters = {"before": datetime.datetime.now(datetime.timezone.utc)}
+                filters = {"before": dt.datetime.now(dt.timezone.utc)}
         activities = list(self.client.get_activities(**filters, limit=10))
 
         for activity in activities:
@@ -71,9 +81,9 @@ class Generator:
                 print(f"skip activity {activity.id} since no count found")
                 continue
 
-            count_match = re.search(r"Total Reps: (\d+)", desc)
-            avg_match = re.search(r"Average Time per Push-Up: (\d+(\.\d+)?)s", desc)
-            calories_match = re.search(r"Burned Calories: (\d+(\.\d+)?)", desc)
+            count_match = COUNT_RE.search(desc)
+            avg_match = AVG_RE.search(desc)
+            calories_match = CALORIES_RE.search(desc)
 
             count = int(count_match.group(1)) if count_match else 0
             avg_time = float(avg_match.group(1)) if avg_match else 0.0
@@ -89,7 +99,8 @@ class Generator:
             sys.stdout.flush()
         self.session.commit()
 
-    def load(self):
-        query = self.session.query(Activity)
-        activities = query.order_by(Activity.start_date_local)
+    def load(self) -> list[dict]:
+        activities: Iterable[Activity] = self.session.query(Activity).order_by(
+            Activity.start_date
+        )
         return [activity.to_dict() for activity in activities]

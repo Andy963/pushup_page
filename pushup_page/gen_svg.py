@@ -1,67 +1,30 @@
+from __future__ import annotations
+
 import argparse
+import datetime as dt
 import logging
-import os
 import sys
-import datetime
-from pushup_page.config import SQL_FILE
-from pushup_page.gpxtrackposter import (
+from pathlib import Path
+
+from gpxtrackposter import (
     circular_drawer,
     github_drawer,
     grid_drawer,
+    month_of_life_drawer,
     poster,
     track_loader,
-    month_of_life_drawer,
 )
-from pushup_page.gpxtrackposter.exceptions import ParameterError, PosterError
+from gpxtrackposter.exceptions import ParameterError, PosterError
+from pushup_page.config import ASSETS_DIR, SQL_FILE
+from pushup_page.stats import activity_dates_from_tracks, calculate_streak
 
 # from flopp great repo
 __app_name__ = "create_poster"
 __app_author__ = "flopp.net"
 
 
-# Utility function to calculate pushup streak
-def calculate_streak(tracks):
-    """Calculates the current push-up streak from a list of tracks."""
-    if not tracks:
-        return 0
-
-    # Assume each track has a start_date attribute
-    dates = []
-    for track in tracks:
-        date_val = getattr(track, "start_date", None)
-        if date_val:
-            if hasattr(date_val, "date"):
-                dates.append(date_val.date())
-            else:
-                dates.append(date_val)
-    dates = sorted(list(set(dates)), reverse=True)
-    if not dates:
-        return 0
-
-    today = datetime.date.today()
-    if dates[0] != today and dates[0] != today - datetime.timedelta(days=1):
-        return 0
-
-    streak = 0
-    if dates[0] == today:
-        streak += 1
-        dates.pop(0)
-
-    if not dates:
-        return streak
-
-    for i, date in enumerate(dates):
-        if i == 0:
-            if today - date == datetime.timedelta(days=1):
-                streak += 1
-            else:
-                break
-        else:
-            if dates[i - 1] - date == datetime.timedelta(days=1):
-                streak += 1
-            else:
-                break
-    return streak
+def calculate_track_streak(tracks) -> int:
+    return calculate_streak(activity_dates_from_tracks(tracks))
 
 
 def main():
@@ -76,12 +39,12 @@ def main():
     }
 
     args_parser = argparse.ArgumentParser()
-    current_year = datetime.date.today().year
+    current_year = dt.date.today().year
     args_parser.add_argument(
         "--output",
         metavar="FILE",
         type=str,
-        default=f"assets/github_{current_year}.svg",
+        default=str(ASSETS_DIR / f"github_{current_year}.svg"),
         help=f'Name of generated SVG image file (default: "assets/github_{current_year}.svg").',
     )
     args_parser.add_argument(
@@ -243,7 +206,7 @@ def main():
         return
 
     # Print streak value
-    streak = calculate_streak(tracks)
+    streak = calculate_track_streak(tracks)
     print(f"Current push-up streak: {streak} days")
 
     is_circular = args.type == "circular"
@@ -289,13 +252,18 @@ def main():
     # for special circular
     if is_circular:
         years = list(p.years.iter())[:]
-        output_dir = os.path.dirname(args.output) or "assets"
+        output_path = Path(args.output)
+        output_dir = (
+            output_path.parent if output_path.parent != Path(".") else ASSETS_DIR
+        )
+        output_dir.mkdir(parents=True, exist_ok=True)
         for y in years:
             p.years.from_year, p.years.to_year = y, y
             # may be refactor
             p.set_tracks(tracks)
-            p.draw(drawers[args.type], os.path.join(output_dir, f"year_{str(y)}.svg"))
+            p.draw(drawers[args.type], str(output_dir / f"year_{y}.svg"))
     else:
+        Path(args.output).parent.mkdir(parents=True, exist_ok=True)
         p.draw(drawers[args.type], args.output)
 
 

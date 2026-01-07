@@ -56,7 +56,7 @@ jobs:
         with:
           path: |
             assets
-            pushup_page/data.db
+            data.db
           key: ${{ env.DATA_CACHE_PREFIX }}-${{ github.sha }}-${{ github.run_id }}
           restore-keys: |
             ${{ env.DATA_CACHE_PREFIX }}-${{ github.sha }}-
@@ -68,7 +68,7 @@ jobs:
           CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
           REFRESH_TOKEN: ${{ secrets.REFRESH_TOKEN }}
         run: |
-          pdm run python -m pushup_page.strava_sync ${{ secrets.CLIENT_ID }} ${{ secrets.CLIENT_SECRET }} ${{ secrets.REFRESH_TOKEN }}
+          pdm run python -m pushup_page.strava_sync
 
       - name: Make svg GitHub profile
         env:
