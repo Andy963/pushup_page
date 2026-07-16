@@ -132,6 +132,12 @@ pnpm develop
    pdm run sync
    ```
 
+   GitHub Actions 首次成功同步后，会把 Strava 返回的新 refresh token 加密写入
+   `.strava-refresh-token.enc`。密钥由 `CLIENT_SECRET` 派生，仓库中只保存密文。
+   Strava 会在返回新 refresh token 后立即废弃旧 token，因此不要删除这个文件。
+   如果同步提示 token 已失效，需要重新授权并更新一次 `REFRESH_TOKEN` secret；
+   后续轮换由 workflow 自动持久化。
+
    可选：通过 `--start-date` 覆盖同步起始时间（默认会从数据库最近一条活动之后开始同步）。
 
    其他资料参见

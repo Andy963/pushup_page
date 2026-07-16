@@ -5,6 +5,7 @@ description = "Generate push-up SVG posters and charts from Strava data"
 authors = [{ name = "Andy963", email = "Andy963@users.noreply.github.com" }]
 dependencies = [
     "arrow>=1.3.0",
+    "cryptography>=45.0.0",
     "stravalib>=2.4",
     "sqlalchemy>=2.0.43",
     "svgwrite>=1.4.3",

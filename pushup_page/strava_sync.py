@@ -9,10 +9,12 @@ import sqlite3
 import stravalib
 
 from generator import Generator
-from pushup_page.config import CSV_PATH, SQL_FILE
+from pushup_page.config import CSV_PATH, REPO_ROOT, SQL_FILE
 from pushup_page.storage import get_latest_activity_datetime, open_session
+from pushup_page.strava_token import StravaTokenStore
 
 DEFAULT_START_DATE = dt.datetime(2025, 1, 1, tzinfo=dt.timezone.utc)
+STRAVA_TOKEN_PATH = REPO_ROOT / ".strava-refresh-token.enc"
 
 
 def export_activities_to_csv(
@@ -30,7 +32,9 @@ def export_activities_to_csv(
         writer.writerows(rows)
 
 
-def resolve_strava_secrets(args: argparse.Namespace) -> tuple[str, str, str]:
+def resolve_strava_secrets(
+    args: argparse.Namespace,
+) -> tuple[str, str, str | None]:
     client_id = args.client_id or args.client_id_arg or os.getenv("CLIENT_ID")
     client_secret = (
         args.client_secret or args.client_secret_arg or os.getenv("CLIENT_SECRET")
@@ -44,7 +48,6 @@ def resolve_strava_secrets(args: argparse.Namespace) -> tuple[str, str, str]:
         for name, value in [
             ("CLIENT_ID", client_id),
             ("CLIENT_SECRET", client_secret),
-            ("REFRESH_TOKEN", refresh_token),
         ]
         if not value
     ]
@@ -64,6 +67,7 @@ def run_strava_sync(
     refresh_token: str,
     start_date: dt.datetime | None = None,
     export_csv: bool = True,
+    token_store: StravaTokenStore | None = None,
 ) -> None:
     generator = Generator(SQL_FILE)
     generator.set_strava_config(client_id, client_secret, refresh_token)
@@ -84,7 +88,11 @@ def run_strava_sync(
         except stravalib.exc.RateLimitExceeded:
             print("Strava API rate limit exceeded. Stopping sync.")
     finally:
-        generator.close()
+        try:
+            generator.close()
+        finally:
+            if token_store is not None and generator.access_token:
+                token_store.save(generator.refresh_token)
 
     if export_csv:
         export_activities_to_csv()
@@ -128,7 +136,9 @@ def main(argv: list[str] | None = None) -> None:
     )
 
     args = parser.parse_args(argv)
-    client_id, client_secret, refresh_token = resolve_strava_secrets(args)
+    client_id, client_secret, fallback_refresh_token = resolve_strava_secrets(args)
+    token_store = StravaTokenStore(STRAVA_TOKEN_PATH, client_secret)
+    refresh_token = token_store.load(fallback_refresh_token)
 
     start_date = dt.datetime.fromisoformat(args.start_date) if args.start_date else None
 
@@ -138,6 +148,7 @@ def main(argv: list[str] | None = None) -> None:
         refresh_token=refresh_token,
         start_date=start_date,
         export_csv=args.export_csv,
+        token_store=token_store,
     )
 
 

@@ -2,26 +2,29 @@ name: CI
 
 on: [push, pull_request]
 
+permissions:
+  contents: read
+
 jobs:
   python_lint_and_test:
     runs-on: ubuntu-latest
     strategy:
       max-parallel: 4
       matrix:
-        python-version: ['3.11', '3.12', '3.13'] # Added Python 3.13 to the matrix
+        python-version: ['3.11', '3.12', '3.13']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           persist-credentials: false
 
       - name: Set up Python ${{ matrix.python-version }}
         id: setup_python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
-          cache: 'pip'
-          cache-dependency-path: 'pdm.lock'
+          cache: pip
+          cache-dependency-path: pdm.lock
 
       - name: Install dependencies
         run: |
@@ -36,5 +39,3 @@ jobs:
 
       - name: Run tests (pytest)
         run: pdm run pytest
-
-

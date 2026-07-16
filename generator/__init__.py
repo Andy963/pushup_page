@@ -24,6 +24,7 @@ class Generator:
         self.client_id = ""
         self.client_secret = ""
         self.refresh_token = ""
+        self.access_token = ""
 
     def close(self) -> None:
         self.session.close()
@@ -34,11 +35,19 @@ class Generator:
         self.refresh_token = refresh_token
 
     def check_access(self) -> None:
-        response = self.client.refresh_access_token(
-            client_id=self.client_id,
-            client_secret=self.client_secret,
-            refresh_token=self.refresh_token,
-        )
+        try:
+            response = self.client.refresh_access_token(
+                client_id=self.client_id,
+                client_secret=self.client_secret,
+                refresh_token=self.refresh_token,
+            )
+        except stravalib.exc.Fault as exc:
+            raise RuntimeError(
+                "Strava authentication failed. The configured refresh token may "
+                "be stale or revoked; generate a new token and update the "
+                "REFRESH_TOKEN GitHub Actions secret."
+            ) from exc
+
         # Update the authdata object
         self.access_token = response["access_token"]
         self.refresh_token = response["refresh_token"]
