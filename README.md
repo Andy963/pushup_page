@@ -10,6 +10,10 @@
 
 ![yearly_chart](assets/yearly_chart.svg)
 
+> **⚠️ 状态说明**
+> 当前 Strava 同步出现问题，GitHub Actions 自动同步已停用，暂无更好解决方案。
+> 已生成的历史数据和 SVG 图表仍然保留，但不会再自动更新。
+
 ## 它是怎么工作的
 
 ![image](https://github.com/yihong0618/running_page/assets/15976103/85d8d59d-2639-431e-8406-9d818afbd4ab)
